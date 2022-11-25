@@ -1,0 +1,3 @@
+[submodule "MSongsDB-Python3"]
+	path = MSongsDB-Python3
+	url = https://github.com/peterfan727/MSongsDB-Python3.git
