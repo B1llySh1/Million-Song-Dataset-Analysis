@@ -14,11 +14,12 @@ sc.addPyFile('hdf5_getters_h5py.py')
 from hdf5_getters_h5py import *
 
 # Full dataset
-# inputs = '/courses/datasets/MillionSong-flat/*/*'
+inputs = '/courses/datasets/MillionSong-flat/*'
+h5s = sc.binaryFiles(inputs, minPartitions=1000)
 
 # 10k subset
-inputs = '/courses/datasets/MillionSongSubset-flat/*/*'
-h5s = sc.binaryFiles(inputs, minPartitions=1000)
+# inputs = '/courses/datasets/MillionSongSubset-flat/*/*'
+# h5s = sc.binaryFiles(inputs, minPartitions=1000)
 
 
 schema = types.StructType([
@@ -167,4 +168,4 @@ def extract_hdf5(f):
 
 data_rdd = h5s.map(extract_hdf5)
 data = spark.createDataFrame(data_rdd, schema=schema)
-data.write.json('msd', mode='overwrite', compression='gzip')
+data.write.json('msd-full', mode='overwrite', compression='gzip')
