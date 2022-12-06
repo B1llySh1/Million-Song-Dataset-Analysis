@@ -47,9 +47,9 @@ msd_schema = types.StructType([
     types.StructField('track_id', types.StringType()),
     types.StructField('segments_start', types.ArrayType(types.FloatType())),
     types.StructField('segments_confidence', types.ArrayType(types.FloatType())),
-    types.StructField('segments_pitches', types.ArrayType(types.ArrayType(types.FloatType()))), 
+    types.StructField('segments_pitches', types.ArrayType(types.ArrayType(types.FloatType()))), # there are 12 pithces
     #40
-    types.StructField('segments_timbre', types.ArrayType(types.ArrayType(types.FloatType()))),
+    types.StructField('segments_timbre', types.ArrayType(types.ArrayType(types.FloatType()))), # there are 12 timbres
     types.StructField('segments_loudness_max', types.ArrayType(types.FloatType())),
     types.StructField('segments_loudness_max_time', types.ArrayType(types.FloatType())),
     types.StructField('segments_loudness_start', types.ArrayType(types.FloatType())),
