@@ -8,6 +8,10 @@ from pyspark.ml.feature import VectorAssembler, Word2Vec, MinMaxScaler, Tokenize
 from pyspark.ml.clustering import KMeans
 from pyspark.ml.evaluation import ClusteringEvaluator
 
+from pyspark.sql.types import ArrayType, FloatType, StringType
+
+import numpy as np
+
 from msd_schema import msd_schema
 
 def main(inputs, output):
@@ -135,6 +139,7 @@ def main(inputs, output):
         VectorAssembler(inputCols=['year'], outputCol='year_vec'),
         MinMaxScaler(inputCol='year_vec', outputCol='year_scaled')
     ])
+    
 
     floatTypes_cols = ['artist_familiarity_scaled', 'artist_hotttnesss_scaled', 'danceability_scaled', 'energy_scaled',
         'end_of_fade_in_scaled', 'start_of_fade_out_scaled', 'key_scaled', 'key_confidence_scaled', 'duration_scaled',
@@ -143,13 +148,15 @@ def main(inputs, output):
     ######################################################################################
     floatArrTypes = [
         # 'artist_terms_freq', 'artist_terms_weight', #TODO: VectorAssemble with 'artist_terms'
-        'segments_start', 'segments_confidence',
-        'segments_loudness_max', 'segments_loudness_start',
-        'sections_start', 'sections_confidence',
-        'beats_start', 'beats_confidence',
-        'bars_start', 'bars_confidence',
-        'tatums_start', 'tatums_confidence'
+        'segments_start', #'segments_confidence',
+        'segments_loudness_max', 'segments_loudness_max_time', 'segments_loudness_start',
+        'sections_start', #'sections_confidence',
+        'beats_start', #'beats_confidence',
+        'bars_start', #'bars_confidence',
+        'tatums_start', #'tatums_confidence'
     ]
+
+
 
     # 2D float arrays
     specialArrTypes = ['segments_pitches', 'segments_timbre']
@@ -157,27 +164,155 @@ def main(inputs, output):
     # Select from the raw DF
     feature_cols = stringTypes + stringArrTypes + floatTypes + floatArrTypes + specialArrTypes
 
-    df = df.select(feature_cols)
+    kMeans_df = df.limit(1000).select(feature_cols)
+
+    # Mean segments_timbre by each column
+    two_d_df = kMeans_df.select(
+            'filename',
+            functions.explode('segments_timbre').alias('segments_timbre'))
+    two_d_df = two_d_df.select(
+            'filename',
+            two_d_df.segments_timbre[0], two_d_df.segments_timbre[1], two_d_df.segments_timbre[2], two_d_df.segments_timbre[3],
+            two_d_df.segments_timbre[4], two_d_df.segments_timbre[5], two_d_df.segments_timbre[6], two_d_df.segments_timbre[7],
+            two_d_df.segments_timbre[8], two_d_df.segments_timbre[9], two_d_df.segments_timbre[10], two_d_df.segments_timbre[11]
+        )
+    two_d_df = two_d_df.groupBy('filename').avg()
 
 
+    # Mean segments_pitches by each column
+    two_d_df_2 = kMeans_df.select(
+            'filename',
+            functions.explode('segments_pitches').alias('segments_pitches'))
+    two_d_df_2 = two_d_df_2.select(
+            'filename',
+            two_d_df_2.segments_pitches[0], two_d_df_2.segments_pitches[1], two_d_df_2.segments_pitches[2], two_d_df_2.segments_pitches[3],
+            two_d_df_2.segments_pitches[4], two_d_df_2.segments_pitches[5], two_d_df_2.segments_pitches[6], two_d_df_2.segments_pitches[7],
+            two_d_df_2.segments_pitches[8], two_d_df_2.segments_pitches[9], two_d_df_2.segments_pitches[10], two_d_df_2.segments_pitches[11],
+        )
+    two_d_df_2 = two_d_df_2.groupBy('filename').avg()
+
+    # Mean and std all the array elements
+    array_mean = functions.udf(lambda x: float(np.mean(x)), FloatType())
+    array_std = functions.udf(lambda x: float(np.std(x)), FloatType())
+
+    mean_df = kMeans_df.select(
+            'filename',
+            array_mean('segments_start').alias('segments_start_mean'),
+            array_mean('segments_loudness_max').alias('segments_loudness_max_mean'),
+            array_mean('segments_loudness_max_time').alias('segments_loudness_max_time_mean'),
+            array_mean('segments_loudness_start').alias('segments_loudness_start_mean'),
+            array_mean('sections_start').alias('sections_start_mean'),
+            array_mean('beats_start').alias('beats_start_mean'),
+            array_mean('bars_start').alias('bars_start_mean'),
+            array_mean('tatums_start').alias('tatums_start_mean'),
+
+            array_std('segments_start').alias('segments_start_std'),
+            array_std('segments_loudness_max').alias('segments_loudness_max_std'),
+            array_std('segments_loudness_max_time').alias('segments_loudness_max_time_std'),
+            array_std('segments_loudness_start').alias('segments_loudness_start_std'),
+            array_std('sections_start').alias('sections_start_std'),
+            array_std('beats_start').alias('beats_start_std'),
+            array_std('bars_start').alias('bars_start_std'),
+            array_std('tatums_start').alias('tatums_start_std'),)
+    segments_start_mean_tf = Pipeline(stages=[ 
+        VectorAssembler(inputCols=['segments_start_mean'], outputCol='segments_start_mean_vec'),
+        MinMaxScaler(inputCol='segments_start_mean_vec', outputCol='segments_start_mean_scaled')
+    ])
+    segments_loudness_max_mean_tf = Pipeline(stages=[ 
+        VectorAssembler(inputCols=['segments_loudness_max_mean'], outputCol='segments_loudness_max_mean_vec'),
+        MinMaxScaler(inputCol='segments_loudness_max_mean_vec', outputCol='segments_loudness_max_mean_scaled')
+    ])
+    segments_loudness_max_time_mean_tf = Pipeline(stages=[ 
+        VectorAssembler(inputCols=['segments_loudness_max_time_mean'], outputCol='segments_loudness_max_time_mean_vec'),
+        MinMaxScaler(inputCol='segments_loudness_max_time_mean_vec', outputCol='segments_loudness_max_time_mean_scaled')
+    ])
+    segments_loudness_start_mean_tf = Pipeline(stages=[ 
+        VectorAssembler(inputCols=['segments_loudness_start_mean'], outputCol='segments_loudness_start_mean_vec'),
+        MinMaxScaler(inputCol='segments_loudness_start_mean_vec', outputCol='segments_loudness_start_mean_scaled')
+    ])
+    sections_start_mean_tf = Pipeline(stages=[ 
+        VectorAssembler(inputCols=['sections_start_mean'], outputCol='sections_start_mean_vec'),
+        MinMaxScaler(inputCol='sections_start_mean_vec', outputCol='sections_start_mean_scaled')
+    ])
+    beats_start_mean_tf = Pipeline(stages=[ 
+        VectorAssembler(inputCols=['beats_start_mean'], outputCol='beats_start_mean_vec'),
+        MinMaxScaler(inputCol='beats_start_mean_vec', outputCol='beats_start_mean_scaled')
+    ])
+    bars_start_mean_tf = Pipeline(stages=[ 
+        VectorAssembler(inputCols=['bars_start_mean'], outputCol='bars_start_mean_vec'),
+        MinMaxScaler(inputCol='bars_start_mean_vec', outputCol='bars_start_mean_scaled')
+    ])
+    tatums_start_mean_tf = Pipeline(stages=[ 
+        VectorAssembler(inputCols=['tatums_start_mean'], outputCol='tatums_start_mean_vec'),
+        MinMaxScaler(inputCol='tatums_start_mean_vec', outputCol='tatums_start_mean_scaled')
+    ])
+    segments_start_std_tf = Pipeline(stages=[ 
+        VectorAssembler(inputCols=['segments_start_std'], outputCol='segments_start_std_vec'),
+        MinMaxScaler(inputCol='segments_start_std_vec', outputCol='segments_start_std_scaled')
+    ])
+    segments_loudness_max_std_tf = Pipeline(stages=[ 
+        VectorAssembler(inputCols=['segments_loudness_max_std'], outputCol='segments_loudness_max_std_vec'),
+        MinMaxScaler(inputCol='segments_loudness_max_std_vec', outputCol='segments_loudness_max_std_scaled')
+    ])
+    segments_loudness_max_time_std_tf = Pipeline(stages=[ 
+        VectorAssembler(inputCols=['segments_loudness_max_time_std'], outputCol='segments_loudness_max_time_std_vec'),
+        MinMaxScaler(inputCol='segments_loudness_max_time_std_vec', outputCol='segments_loudness_max_time_std_scaled')
+    ])
+    segments_loudness_start_std_tf = Pipeline(stages=[ 
+        VectorAssembler(inputCols=['segments_loudness_start_std'], outputCol='segments_loudness_start_std_vec'),
+        MinMaxScaler(inputCol='segments_loudness_start_std_vec', outputCol='segments_loudness_start_std_scaled')
+    ])
+    sections_start_std_tf = Pipeline(stages=[ 
+        VectorAssembler(inputCols=['sections_start_std'], outputCol='sections_start_std_vec'),
+        MinMaxScaler(inputCol='sections_start_std_vec', outputCol='sections_start_std_scaled')
+    ])
+    beats_start_std_tf = Pipeline(stages=[ 
+        VectorAssembler(inputCols=['beats_start_std'], outputCol='beats_start_std_vec'),
+        MinMaxScaler(inputCol='beats_start_std_vec', outputCol='beats_start_std_scaled')
+    ])
+    bars_start_std_tf = Pipeline(stages=[ 
+        VectorAssembler(inputCols=['bars_start_std'], outputCol='bars_start_std_vec'),
+        MinMaxScaler(inputCol='bars_start_std_vec', outputCol='bars_start_std_scaled')
+    ])
+    tatums_start_std_tf = Pipeline(stages=[ 
+        VectorAssembler(inputCols=['tatums_start_std'], outputCol='tatums_start_std_vec'),
+        MinMaxScaler(inputCol='tatums_start_std_vec', outputCol='tatums_start_std_scaled')
+    ])
+
+
+    one_d_df = two_d_df.join(two_d_df_2,on='filename')
+    kMeans_df = kMeans_df.join(one_d_df, on='filename')
+    kMeans_df = kMeans_df.join(mean_df, on='filename')
 
     # Drop rows with any empty fields
-    df = df.dropna("any") # Note: in 10k subset, only 2210 songs left
-    rows = df.count() # should have less than 10k songs now
+    final_df = kMeans_df.dropna("any") # Note: in 10k subset, only 2210 songs left
+    # final_df.show()
+    rows = final_df.count() # should have less than 10k songs now
     print(f"Number of rows left: {rows}")
 
     """
     Build pipeline
     """
     # Transform all features into a Vector
-    ignore = [] # columns to ignore (str)
-    scaled_features = stringTypes_cols + stringArrTypes_cols + floatTypes_cols
+    # ignore = [] # columns to ignore (str)
+    # scaled_features = stringTypes_cols + stringArrTypes_cols + floatTypes_cols
+    stringTypes_ignore = ['artist_id_words', 'artist_id_vec', 
+        'artist_name_words', 'artist_name_vec',
+        'title_words', 'title_vec']
+    stringArrTypes_ignore = ['similar_artists_vec']
+    floatTypes_ignore = ['artist_familiarity_vec', 'artist_hotttnesss_vec', 'danceability_vec', 'energy_vec',
+        'end_of_fade_in_vec', 'start_of_fade_out_vec', 'key_vec', 'key_confidence_vec', 'duration_vec',
+        'loudness_vec', 'tempo_vec', 'mode_vec', 'time_signature_vec', 'year_vec'
+        ]
+    origin_array_ignore = ['segments_start_mean_vec', 'segments_loudness_max_mean_vec','segments_loudness_max_time_mean_vec','segments_loudness_start_mean_vec','sections_start_mean_vec','beats_start_mean_vec','bars_start_mean_vec','tatums_start_mean_vec','segments_start_std_vec','segments_loudness_max_std_vec','segments_loudness_max_time_std_vec','segments_loudness_start_std_vec','sections_start_std_vec','beats_start_std_vec','bars_start_std_vec','tatums_start_std_vec']
+    ignore = stringTypes_ignore+stringArrTypes_ignore+floatTypes_ignore+feature_cols+origin_array_ignore # columns to ignore (str)
+    scaled_features = [name for name in final_df.schema.names if name not in ignore]
     final_assembler = VectorAssembler(
         # inputCols=[x for x in df.columns if x not in ignore], 
         inputCols=scaled_features, 
         outputCol='features')
 
-    train, test = df.randomSplit([0.8, 0.2])
+    train, test = final_df.randomSplit([0.8, 0.2])
 
     # Pipeline
     pipeline = Pipeline(stages=[
@@ -200,6 +335,23 @@ def main(inputs, output):
         mode_tf,
         time_signature_tf,
         year_tf,
+        ##
+        segments_start_mean_tf,
+        segments_loudness_max_mean_tf,
+        segments_loudness_max_time_mean_tf,
+        segments_loudness_start_mean_tf,
+        sections_start_mean_tf,
+        beats_start_mean_tf,
+        bars_start_mean_tf,
+        tatums_start_mean_tf,
+        segments_start_std_tf,
+        segments_loudness_max_std_tf,
+        segments_loudness_max_time_std_tf,
+        segments_loudness_start_std_tf,
+        sections_start_std_tf,
+        beats_start_std_tf,
+        bars_start_std_tf,
+        tatums_start_std_tf,
         # # Assemble everything
         final_assembler,
         # VectorAssembler(inputCols=['segments_timbre_vec'], outputCol='features'),
