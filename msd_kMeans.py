@@ -233,7 +233,8 @@ def main(inputs, output):
 
     df = spark.read.json(inputs, schema=msd_schema)
     
-    kMeans_df = df.limit(100).select(feature_cols)     # TODO: remove the limit
+    # TODO: caching here seems to break test on local machine, but caching fixes 0 row count error on the cluster
+    kMeans_df = df.select(feature_cols).cache()     # TODO: remove the limit, maybe cache? 
 
     """
     Transform 2D arrays to meaningful statistics
@@ -296,16 +297,16 @@ def main(inputs, output):
 
     mean_df.show(1)
 
-    one_d_df = two_d_df.join(two_d_df_2,on='filename')
-    kMeans_df = kMeans_df.join(one_d_df, on='filename')
-    kMeans_df = kMeans_df.join(mean_df, on='filename')
+    kMeans_df = kMeans_df.join(two_d_df.hint('broadcast'), on='filename')
+    kMeans_df = kMeans_df.join(two_d_df_2.hint('broadcast'), on='filename')
+    kMeans_df = kMeans_df.join(mean_df.hint('broadcast'), on='filename')
     # Drop the untransformed 1D and 2D array data to make the DF smaller
-    kMeans_df = kMeans_df.drop('segments_start', 'segments_loudness_max', 'segments_loudness_max_time', 'segments_loudness_start',
-        'sections_start', 'beats_start', 'bars_start', 'tatums_start', 'segments_timbre', 'segments_pitches')    
+    # kMeans_df = kMeans_df.drop('segments_start', 'segments_loudness_max', 'segments_loudness_max_time', 'segments_loudness_start',
+    #     'sections_start', 'beats_start', 'bars_start', 'tatums_start', 'segments_timbre', 'segments_pitches')    
 
     # Drop rows with any empty fields
     final_df = kMeans_df.dropna("any") # Note: in 10k subset, only 2210 songs left
-    final_df.show(1, truncate=False)
+    final_df.show(1)
     rows = final_df.count() # should have less than 10k songs now
     print(f"Number of rows left: {rows}")
 
@@ -396,7 +397,7 @@ if __name__ == '__main__':
     inputs = sys.argv[1]
     output = sys.argv[2]
     
-    spark = SparkSession.builder.appName('msd-kNN').getOrCreate()
+    spark = SparkSession.builder.appName('msd-kMeans').getOrCreate()
     assert spark.version >= '3.2' # make sure we have Spark 3.2+
     spark.sparkContext.setLogLevel('WARN')
     #sc = spark.sparkContext
