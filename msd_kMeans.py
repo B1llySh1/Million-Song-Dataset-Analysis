@@ -296,13 +296,13 @@ def main(inputs, output):
         ).cache()
 
     # mean_df.show(1)
+    # Drop the untransformed, original 1D and 2D array columns to make the DF smaller
+    kMeans_df = kMeans_df.drop('segments_start', 'segments_loudness_max', 'segments_loudness_max_time', 'segments_loudness_start',
+        'sections_start', 'beats_start', 'bars_start', 'tatums_start', 'segments_timbre', 'segments_pitches')    
 
     kMeans_df = kMeans_df.join(two_d_df, on='filename')
     kMeans_df = kMeans_df.join(two_d_df_2, on='filename')
     kMeans_df = kMeans_df.join(mean_df, on='filename')
-    # Drop the untransformed 1D and 2D array data to make the DF smaller
-    # kMeans_df = kMeans_df.drop('segments_start', 'segments_loudness_max', 'segments_loudness_max_time', 'segments_loudness_start',
-    #     'sections_start', 'beats_start', 'bars_start', 'tatums_start', 'segments_timbre', 'segments_pitches')    
 
     # Drop rows with any empty fields
     final_df = kMeans_df.dropna("any").cache() # Note: in 10k subset, only 2210 songs left
@@ -377,8 +377,7 @@ def main(inputs, output):
         tatums_start_std_tf,
         # # Assemble everything
         final_assembler,
-        MinMaxScaler(inputCol='features', outputCol='features'),
-        KMeans(featuresCol='features', k=5)    #TODO: optmize k later
+        KMeans(featuresCol='features', k=20)    #TODO: optmize k later
     ])
 
     model = pipeline.fit(train)
