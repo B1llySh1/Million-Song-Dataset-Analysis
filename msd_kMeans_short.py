@@ -20,19 +20,41 @@ def main(inputs, output):
     specialArrTypes = ['segments_pitches', 'segments_timbre']
 
     # Select from the raw DF
-    df = df.select('segments_timbre')
+    df = df.select(
+        'filename',
+        functions.explode('segments_timbre').alias('segments_timbre'))
 
-    # TODO: Convert 2D Float ArrayTypes to Vectors
-    df = df.withColumn(
-        'segments_timbre_vec', 
-        functions.transform(        # map each element (https://spark.apache.org/docs/3.2.0/api/python/reference/api/pyspark.sql.functions.transform.html)
-            'segments_timbre',
-            lambda x : array_to_vector(x)
-        )
-    # )
-    # Then array_to_vector again to get 2D Vector<Vector>?
-    # TODO: Error here
-    ).withColumn('segments_timbre_vec2', array_to_vector('segments_timbre_vec'))
+    df = df.filter(
+        df['filename'] == 'TRANIJG128F92EFC9B'
+    )
+
+    df.show(1)
+
+    df = df.select(
+        'filename',
+        df.segments_timbre[0], df.segments_timbre[1], df.segments_timbre[2], df.segments_timbre[3],
+        df.segments_timbre[4], df.segments_timbre[5], df.segments_timbre[6], df.segments_timbre[7],
+        df.segments_timbre[8], df.segments_timbre[9], df.segments_timbre[10], df.segments_timbre[11]
+    )
+
+    df.show(1)
+
+    df = df.groupBy('filename').avg()
+
+    df.show(1)
+
+    return
+    # # TODO: Convert 2D Float ArrayTypes to Vectors
+    # df = df.withColumn(
+    #     'segments_timbre_avg', 
+    #     functions.transform(        # map each element (https://spark.apache.org/docs/3.2.0/api/python/reference/api/pyspark.sql.functions.transform.html)
+    #         'segments_timbre',
+    #         lambda x : array_to_vector(x)
+    #     )
+    # # )
+    # # Then array_to_vector again to get 2D Vector<Vector>?
+    # # TODO: Error here
+    # ).withColumn('segments_timbre_vec2', array_to_vector('segments_timbre_vec'))
 
 
     # Drop rows with any empty fields
@@ -48,8 +70,9 @@ def main(inputs, output):
     train, test = df.randomSplit([0.8, 0.2])
 
     # Pipeline
+    ignore = ['filename']
     pipeline = Pipeline(stages=[
-        VectorAssembler(inputCols=['segments_timbre_vec'], outputCol='features'),
+        VectorAssembler(inputCols=[x for x in df.columns if x not in ignore], outputCol='features'),
         KMeans(k=20)    
     ])
 
