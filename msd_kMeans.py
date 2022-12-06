@@ -155,11 +155,6 @@ def main(inputs, output):
         'tatums_start', #'tatums_confidence'
     ]
 
-
-
-    # 2D float arrays
-    specialArrTypes = ['segments_pitches', 'segments_timbre']
-
     segments_start_mean_tf = Pipeline(stages=[ 
         VectorAssembler(inputCols=['segments_start_mean'], outputCol='segments_start_mean_vec'),
         MinMaxScaler(inputCol='segments_start_mean_vec', outputCol='segments_start_mean_scaled')
@@ -227,6 +222,66 @@ def main(inputs, output):
 
     ######################################################################################
 
+
+    # 2D float arrays
+    specialArrTypes = ['segments_pitches', 'segments_timbre']
+
+    segments_timbre_tf = Pipeline(stages=[
+        VectorAssembler(inputCols=['avg(segments_timbre[0])'], outputCol='avg(segments_timbre[0])_vec'),
+        MinMaxScaler(inputCol='avg(segments_timbre[0])_vec', outputCol='avg(segments_timbre[0])_scaled'),
+        VectorAssembler(inputCols=['avg(segments_timbre[1])'], outputCol='avg(segments_timbre[1])_vec'),
+        MinMaxScaler(inputCol='avg(segments_timbre[1])_vec', outputCol='avg(segments_timbre[1])_scaled'),
+        VectorAssembler(inputCols=['avg(segments_timbre[2])'], outputCol='avg(segments_timbre[2])_vec'),
+        MinMaxScaler(inputCol='avg(segments_timbre[2])_vec', outputCol='avg(segments_timbre[2])_scaled'),
+        VectorAssembler(inputCols=['avg(segments_timbre[3])'], outputCol='avg(segments_timbre[3])_vec'),
+        MinMaxScaler(inputCol='avg(segments_timbre[3])_vec', outputCol='avg(segments_timbre[3])_scaled'),
+        VectorAssembler(inputCols=['avg(segments_timbre[4])'], outputCol='avg(segments_timbre[4])_vec'),
+        MinMaxScaler(inputCol='avg(segments_timbre[4])_vec', outputCol='avg(segments_timbre[4])_scaled'),
+        VectorAssembler(inputCols=['avg(segments_timbre[5])'], outputCol='avg(segments_timbre[5])_vec'),
+        MinMaxScaler(inputCol='avg(segments_timbre[5])_vec', outputCol='avg(segments_timbre[5])_scaled'),
+        VectorAssembler(inputCols=['avg(segments_timbre[6])'], outputCol='avg(segments_timbre[6])_vec'),
+        MinMaxScaler(inputCol='avg(segments_timbre[6])_vec', outputCol='avg(segments_timbre[6])_scaled'),
+        VectorAssembler(inputCols=['avg(segments_timbre[7])'], outputCol='avg(segments_timbre[7])_vec'),
+        MinMaxScaler(inputCol='avg(segments_timbre[7])_vec', outputCol='avg(segments_timbre[7])_scaled'),
+        VectorAssembler(inputCols=['avg(segments_timbre[8])'], outputCol='avg(segments_timbre[8])_vec'),
+        MinMaxScaler(inputCol='avg(segments_timbre[8])_vec', outputCol='avg(segments_timbre[8])_scaled'),
+        VectorAssembler(inputCols=['avg(segments_timbre[9])'], outputCol='avg(segments_timbre[9])_vec'),
+        MinMaxScaler(inputCol='avg(segments_timbre[9])_vec', outputCol='avg(segments_timbre[9])_scaled'),
+        VectorAssembler(inputCols=['avg(segments_timbre[10])'], outputCol='avg(segments_timbre[10])_vec'),
+        MinMaxScaler(inputCol='avg(segments_timbre[10])_vec', outputCol='avg(segments_timbre[10])_scaled'),
+        VectorAssembler(inputCols=['avg(segments_timbre[11])'], outputCol='avg(segments_timbre[11])_vec'),
+        MinMaxScaler(inputCol='avg(segments_timbre[11])_vec', outputCol='avg(segments_timbre[11])_scaled')
+    ])
+    
+    segments_pitches_tf = Pipeline(stages=[
+        VectorAssembler(inputCols=['avg(segments_pitches[0])'], outputCol='avg(segments_pitches[0])_vec'),
+        MinMaxScaler(inputCol='avg(segments_pitches[0])_vec', outputCol='avg(segments_pitches[0])_scaled'),
+        VectorAssembler(inputCols=['avg(segments_pitches[1])'], outputCol='avg(segments_pitches[1])_vec'),
+        MinMaxScaler(inputCol='avg(segments_pitches[1])_vec', outputCol='avg(segments_pitches[1])_scaled'),
+        VectorAssembler(inputCols=['avg(segments_pitches[2])'], outputCol='avg(segments_pitches[2])_vec'),
+        MinMaxScaler(inputCol='avg(segments_pitches[2])_vec', outputCol='avg(segments_pitches[2])_scaled'),
+        VectorAssembler(inputCols=['avg(segments_pitches[3])'], outputCol='avg(segments_pitches[3])_vec'),
+        MinMaxScaler(inputCol='avg(segments_pitches[3])_vec', outputCol='avg(segments_pitches[3])_scaled'),
+        VectorAssembler(inputCols=['avg(segments_pitches[4])'], outputCol='avg(segments_pitches[4])_vec'),
+        MinMaxScaler(inputCol='avg(segments_pitches[4])_vec', outputCol='avg(segments_pitches[4])_scaled'),
+        VectorAssembler(inputCols=['avg(segments_pitches[5])'], outputCol='avg(segments_pitches[5])_vec'),
+        MinMaxScaler(inputCol='avg(segments_pitches[5])_vec', outputCol='avg(segments_pitches[5])_scaled'),
+        VectorAssembler(inputCols=['avg(segments_pitches[6])'], outputCol='avg(segments_pitches[6])_vec'),
+        MinMaxScaler(inputCol='avg(segments_pitches[6])_vec', outputCol='avg(segments_pitches[6])_scaled'),
+        VectorAssembler(inputCols=['avg(segments_pitches[7])'], outputCol='avg(segments_pitches[7])_vec'),
+        MinMaxScaler(inputCol='avg(segments_pitches[7])_vec', outputCol='avg(segments_pitches[7])_scaled'),
+        VectorAssembler(inputCols=['avg(segments_pitches[8])'], outputCol='avg(segments_pitches[8])_vec'),
+        MinMaxScaler(inputCol='avg(segments_pitches[8])_vec', outputCol='avg(segments_pitches[8])_scaled'),
+        VectorAssembler(inputCols=['avg(segments_pitches[9])'], outputCol='avg(segments_pitches[9])_vec'),
+        MinMaxScaler(inputCol='avg(segments_pitches[9])_vec', outputCol='avg(segments_pitches[9])_scaled'),
+        VectorAssembler(inputCols=['avg(segments_pitches[10])'], outputCol='avg(segments_pitches[10])_vec'),
+        MinMaxScaler(inputCol='avg(segments_pitches[10])_vec', outputCol='avg(segments_pitches[10])_scaled'),
+        VectorAssembler(inputCols=['avg(segments_pitches[11])'], outputCol='avg(segments_pitches[11])_vec'),
+        MinMaxScaler(inputCol='avg(segments_pitches[11])_vec', outputCol='avg(segments_pitches[11])_scaled')
+    ])
+
+    ######################################################################################
+
     # Select from the raw DF
     feature_cols = stringTypes + stringArrTypes + floatTypes + floatArrTypes + specialArrTypes
 
@@ -234,7 +289,7 @@ def main(inputs, output):
     df = spark.read.json(inputs, schema=msd_schema)
     
     # TODO: caching here seems to break test on local machine, but caching fixes 0 row count error on the cluster
-    kMeans_df = df.select(feature_cols).cache()     # TODO: remove the limit, maybe cache? 
+    kMeans_df = df.select(feature_cols)     # TODO: remove the limit, maybe cache? 
 
     """
     Transform 2D arrays to meaningful statistics
@@ -250,7 +305,11 @@ def main(inputs, output):
             two_d_df.segments_timbre[8], two_d_df.segments_timbre[9], two_d_df.segments_timbre[10], two_d_df.segments_timbre[11]
         )
     two_d_df = two_d_df.groupBy('filename').avg().cache()
-    
+
+    # two_d_df.show(1)
+
+    # return
+
     # two_d_df.show(1)
 
     # Mean segments_pitches by each column
@@ -264,6 +323,8 @@ def main(inputs, output):
             two_d_df_2.segments_pitches[8], two_d_df_2.segments_pitches[9], two_d_df_2.segments_pitches[10], two_d_df_2.segments_pitches[11],
         )
     two_d_df_2 = two_d_df_2.groupBy('filename').avg().cache()
+
+
 
     # two_d_df_2.show(1)
 
@@ -328,7 +389,33 @@ def main(inputs, output):
         'segments_loudness_start_mean_vec','sections_start_mean_vec','beats_start_mean_vec','bars_start_mean_vec','tatums_start_mean_vec',
         'segments_start_std_vec','segments_loudness_max_std_vec','segments_loudness_max_time_std_vec','segments_loudness_start_std_vec',
         'sections_start_std_vec','beats_start_std_vec','bars_start_std_vec','tatums_start_std_vec']
-    ignore = stringTypes_ignore + stringArrTypes_ignore + floatTypes_ignore + feature_cols + origin_array_ignore # columns to ignore (str)
+    origin_2d_array_ignore = [
+        'avg(segments_timbre[0])', 'avg(segments_timbre[0])_vec',
+        'avg(segments_timbre[1])', 'avg(segments_timbre[1])_vec',
+        'avg(segments_timbre[2])', 'avg(segments_timbre[2])_vec',
+        'avg(segments_timbre[3])', 'avg(segments_timbre[3])_vec',
+        'avg(segments_timbre[4])', 'avg(segments_timbre[4])_vec',
+        'avg(segments_timbre[5])', 'avg(segments_timbre[5])_vec',
+        'avg(segments_timbre[6])', 'avg(segments_timbre[6])_vec',
+        'avg(segments_timbre[7])', 'avg(segments_timbre[7])_vec',
+        'avg(segments_timbre[8])', 'avg(segments_timbre[8])_vec',
+        'avg(segments_timbre[9])', 'avg(segments_timbre[9])_vec'
+        'avg(segments_timbre[10])', 'avg(segments_timbre[10])_vec',
+        'avg(segments_timbre[11])', 'avg(segments_timbre[11])_vec',
+        'avg(segments_pitches[0])', 'avg(segments_pitches[0])_vec',
+        'avg(segments_pitches[1])', 'avg(segments_pitches[1])_vec',
+        'avg(segments_pitches[2])', 'avg(segments_pitches[2])_vec',
+        'avg(segments_pitches[3])', 'avg(segments_pitches[3])_vec',
+        'avg(segments_pitches[4])', 'avg(segments_pitches[4])_vec',
+        'avg(segments_pitches[5])', 'avg(segments_pitches[5])_vec',
+        'avg(segments_pitches[6])', 'avg(segments_pitches[6])_vec',
+        'avg(segments_pitches[7])', 'avg(segments_pitches[7])_vec',
+        'avg(segments_pitches[8])', 'avg(segments_pitches[8])_vec',
+        'avg(segments_pitches[9])', 'avg(segments_pitches[9])_vec',
+        'avg(segments_pitches[10])', 'avg(segments_pitches[10])_vec',
+        'avg(segments_pitches[11])', 'avg(segments_pitches[11])_vec'
+    ]
+    ignore = stringTypes_ignore + stringArrTypes_ignore + floatTypes_ignore + feature_cols + origin_array_ignore + origin_2d_array_ignore # columns to ignore (str)
     scaled_features = [name for name in final_df.schema.names if name not in ignore]
     final_assembler = VectorAssembler(
         # inputCols=[x for x in df.columns if x not in ignore], 
@@ -375,9 +462,11 @@ def main(inputs, output):
         beats_start_std_tf,
         bars_start_std_tf,
         tatums_start_std_tf,
+        segments_timbre_tf,
+        segments_pitches_tf,
         # # Assemble everything
         final_assembler,
-        KMeans(featuresCol='features', k=20)    #TODO: optmize k later
+        KMeans(featuresCol='features', k=10)    #TODO: optmize k later
     ])
 
     model = pipeline.fit(train)
