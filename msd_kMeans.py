@@ -18,23 +18,55 @@ def main(inputs, output):
 
     # columns to be selected for transformation
     stringTypes = [ 
+        'filename',
         'artist_id', 
         'artist_name',
-        'artist_location', 
+        # 'artist_location', 
         'title'
     ]
+    """ Transformers for string type columns """
+    artist_id_tf = Pipeline(stages=[
+        Tokenizer(inputCol='artist_id', outputCol='artist_id_words'),
+        Word2Vec(inputCol='artist_id_words', outputCol='artist_id_vec', minCount=1),
+        MinMaxScaler(inputCol='artist_id_vec', outputCol='artist_id_scaled')
+    ])
+    artist_name_tf = Pipeline(stages=[
+        Tokenizer(inputCol='artist_name', outputCol='artist_name_words'),
+        Word2Vec(inputCol='artist_name_words', outputCol='artist_name_vec', minCount=1),
+        MinMaxScaler(inputCol='artist_name_vec', outputCol='artist_name_scaled')
+    ])
+    title_tf = Pipeline(stages=[
+        Tokenizer(inputCol='title', outputCol='title_words'),
+        Word2Vec(inputCol='title_words', outputCol='title_vec', minCount=1),
+        MinMaxScaler(inputCol='title_vec', outputCol='title_scaled')
+    ])
+
+    stringTypes_cols = ['artist_id_vec_scaled', 'artist_name_scaled', 'title_scaled']
+
+    ######################################################################################
 
     stringArrTypes = [         
-        'artist_terms', # TODO: Decide if want to continue with using terms/tags
-        # 'similar_artists',
+        # 'artist_terms', # TODO: Decide if want to continue with using terms/tags
+        'similar_artists',
     ]
+
+    """ Transformers for string array type columns """
+    similar_artists_tf = Pipeline(stages=[
+        Word2Vec(inputCol='similar_artists', outputCol='similar_artists_vec'),
+        MinMaxScaler(inputCol='similar_artists_vec', outputCol='similar_artists_scaled')
+    ])
+
+    stringArrTypes_cols = ['similar_artists_scaled']
+
+    ######################################################################################
 
     # also include Int types
     floatTypes = [
         'artist_familiarity', # use to filter out low familiarity artists?
         'artist_hotttnesss',
         'artist_latitude', 'artist_longitude',
-        'song_hotttnesss', 'danceability', 'energy',
+        # 'song_hotttnesss', # dropped because too many N/A
+        'danceability', 'energy',
         'end_of_fade_in', 'start_of_fade_out',
         'key', 'key_confidence',
         'duration', 
@@ -44,7 +76,16 @@ def main(inputs, output):
         'time_signature', 'time_signature_confidence',
         'year', #TODO: shift to delta since min year
     ]
+    """ Transformers for float/int type columns """
+    artist_familiarity_tf = MinMaxScaler(inputCol='artist_familiarity', outputCol='artist_familiarity_scaled')
+    artist_hotttnesss_tf = MinMaxScaler(inputCol='artist_hotttnesss', outputCol='artist_hotttnesss_scaled')
+    artist_latitude_tf = MinMaxScaler(inputCol='artist_latitude', outputCol='artist_latitude_scaled',
+        min=-90.0, max=90.0)
+    artist_longitude_tf = MinMaxScaler(inputCol='artist_longitude', outputCol='artist_longitude_scaled',
+        min=-180.0, max=180.0)
 
+    floatTypes = ['', '']
+    ######################################################################################
     floatArrTypes = [
         # 'artist_terms_freq', 'artist_terms_weight', #TODO: VectorAssemble with 'artist_terms'
         'segments_start', 'segments_confidence',
@@ -69,18 +110,9 @@ def main(inputs, output):
 
     # Use Word2Vec to transform String type data into Vectors
     # TODO: do this for all stringTypes
-    filename_2vec = Pipeline(stages=[
-        Tokenizer(inputCol='filename', outputCol='filename_words'),
-        Word2Vec(inputCol='filename_words', outputCol='filename_vec', minCount=1)
-    ])
-    artist_id_2vec = Pipeline(stages=[
-        Tokenizer(inputCol='artist_id', outputCol='artist_id_words'),
-        Word2Vec(inputCol='artist_id_words', outputCol='artist_id_vec', minCount=1)
-    ])
 
-    similar_artists_2vec = Pipeline(stages=[
-        Word2Vec(inputCol='similar_artists', outputCol='similar_artists_vec')
-    ])
+
+
 
     # TODO: Convert Float ArrayTypes to Vectors using array_to_vector
     # df = df.withColumn(
