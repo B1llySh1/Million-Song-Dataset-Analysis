@@ -18,15 +18,14 @@ def main(inputs, output):
     """
     Naive training with all the complete data
     """
-    df = spark.read.json(inputs, schema=msd_schema)
 
     # columns to be selected for transformation
     stringTypes = [ 
         'filename',
-        'artist_id', 
-        'artist_name',
+        # 'artist_id', 
+        # 'artist_name',
         # 'artist_location', 
-        'title'
+        # 'title'
     ]
     """ Transformers for string type columns """
     artist_id_tf = Pipeline(stages=[
@@ -51,12 +50,12 @@ def main(inputs, output):
 
     stringArrTypes = [         
         # 'artist_terms', # TODO: Decide if want to continue with using terms/tags
-        'similar_artists',
+        # 'similar_artists',
     ]
 
     """ Transformers for string array type columns """
     similar_artists_tf = Pipeline(stages=[
-        Word2Vec(inputCol='similar_artists', outputCol='similar_artists_vec'),
+        Word2Vec(inputCol='similar_artists', outputCol='similar_artists_vec', minCount=1),
         MinMaxScaler(inputCol='similar_artists_vec', outputCol='similar_artists_scaled')
     ])
 
@@ -161,59 +160,6 @@ def main(inputs, output):
     # 2D float arrays
     specialArrTypes = ['segments_pitches', 'segments_timbre']
 
-    # Select from the raw DF
-    feature_cols = stringTypes + stringArrTypes + floatTypes + floatArrTypes + specialArrTypes
-
-    kMeans_df = df.limit(1000).select(feature_cols)
-
-    # Mean segments_timbre by each column
-    two_d_df = kMeans_df.select(
-            'filename',
-            functions.explode('segments_timbre').alias('segments_timbre'))
-    two_d_df = two_d_df.select(
-            'filename',
-            two_d_df.segments_timbre[0], two_d_df.segments_timbre[1], two_d_df.segments_timbre[2], two_d_df.segments_timbre[3],
-            two_d_df.segments_timbre[4], two_d_df.segments_timbre[5], two_d_df.segments_timbre[6], two_d_df.segments_timbre[7],
-            two_d_df.segments_timbre[8], two_d_df.segments_timbre[9], two_d_df.segments_timbre[10], two_d_df.segments_timbre[11]
-        )
-    two_d_df = two_d_df.groupBy('filename').avg()
-
-
-    # Mean segments_pitches by each column
-    two_d_df_2 = kMeans_df.select(
-            'filename',
-            functions.explode('segments_pitches').alias('segments_pitches'))
-    two_d_df_2 = two_d_df_2.select(
-            'filename',
-            two_d_df_2.segments_pitches[0], two_d_df_2.segments_pitches[1], two_d_df_2.segments_pitches[2], two_d_df_2.segments_pitches[3],
-            two_d_df_2.segments_pitches[4], two_d_df_2.segments_pitches[5], two_d_df_2.segments_pitches[6], two_d_df_2.segments_pitches[7],
-            two_d_df_2.segments_pitches[8], two_d_df_2.segments_pitches[9], two_d_df_2.segments_pitches[10], two_d_df_2.segments_pitches[11],
-        )
-    two_d_df_2 = two_d_df_2.groupBy('filename').avg()
-
-    # Mean and std all the array elements
-    array_mean = functions.udf(lambda x: float(np.mean(x)), FloatType())
-    array_std = functions.udf(lambda x: float(np.std(x)), FloatType())
-
-    mean_df = kMeans_df.select(
-            'filename',
-            array_mean('segments_start').alias('segments_start_mean'),
-            array_mean('segments_loudness_max').alias('segments_loudness_max_mean'),
-            array_mean('segments_loudness_max_time').alias('segments_loudness_max_time_mean'),
-            array_mean('segments_loudness_start').alias('segments_loudness_start_mean'),
-            array_mean('sections_start').alias('sections_start_mean'),
-            array_mean('beats_start').alias('beats_start_mean'),
-            array_mean('bars_start').alias('bars_start_mean'),
-            array_mean('tatums_start').alias('tatums_start_mean'),
-
-            array_std('segments_start').alias('segments_start_std'),
-            array_std('segments_loudness_max').alias('segments_loudness_max_std'),
-            array_std('segments_loudness_max_time').alias('segments_loudness_max_time_std'),
-            array_std('segments_loudness_start').alias('segments_loudness_start_std'),
-            array_std('sections_start').alias('sections_start_std'),
-            array_std('beats_start').alias('beats_start_std'),
-            array_std('bars_start').alias('bars_start_std'),
-            array_std('tatums_start').alias('tatums_start_std'),)
     segments_start_mean_tf = Pipeline(stages=[ 
         VectorAssembler(inputCols=['segments_start_mean'], outputCol='segments_start_mean_vec'),
         MinMaxScaler(inputCol='segments_start_mean_vec', outputCol='segments_start_mean_scaled')
@@ -279,14 +225,87 @@ def main(inputs, output):
         MinMaxScaler(inputCol='tatums_start_std_vec', outputCol='tatums_start_std_scaled')
     ])
 
+    ######################################################################################
+
+    # Select from the raw DF
+    feature_cols = stringTypes + stringArrTypes + floatTypes + floatArrTypes + specialArrTypes
+
+
+    df = spark.read.json(inputs, schema=msd_schema)
+    
+    kMeans_df = df.limit(100).select(feature_cols)     # TODO: remove the limit
+
+    """
+    Transform 2D arrays to meaningful statistics
+    """
+    # Mean segments_timbre by each column
+    two_d_df = kMeans_df.select(
+            'filename',
+            functions.explode('segments_timbre').alias('segments_timbre'))
+    two_d_df = two_d_df.select(
+            'filename',
+            two_d_df.segments_timbre[0], two_d_df.segments_timbre[1], two_d_df.segments_timbre[2], two_d_df.segments_timbre[3],
+            two_d_df.segments_timbre[4], two_d_df.segments_timbre[5], two_d_df.segments_timbre[6], two_d_df.segments_timbre[7],
+            two_d_df.segments_timbre[8], two_d_df.segments_timbre[9], two_d_df.segments_timbre[10], two_d_df.segments_timbre[11]
+        )
+    two_d_df = two_d_df.groupBy('filename').avg().cache()
+    
+    two_d_df.show(1)
+
+    # Mean segments_pitches by each column
+    two_d_df_2 = kMeans_df.select(
+            'filename',
+            functions.explode('segments_pitches').alias('segments_pitches'))
+    two_d_df_2 = two_d_df_2.select(
+            'filename',
+            two_d_df_2.segments_pitches[0], two_d_df_2.segments_pitches[1], two_d_df_2.segments_pitches[2], two_d_df_2.segments_pitches[3],
+            two_d_df_2.segments_pitches[4], two_d_df_2.segments_pitches[5], two_d_df_2.segments_pitches[6], two_d_df_2.segments_pitches[7],
+            two_d_df_2.segments_pitches[8], two_d_df_2.segments_pitches[9], two_d_df_2.segments_pitches[10], two_d_df_2.segments_pitches[11],
+        )
+    two_d_df_2 = two_d_df_2.groupBy('filename').avg().cache()
+
+    two_d_df_2.show(1)
+
+    """
+    Transform 1D Arrays to meaningful statistics
+    """
+    # Mean and std all the array elements
+    array_mean = functions.udf(lambda x: float(np.mean(x)), FloatType())
+    array_std = functions.udf(lambda x: float(np.std(x)), FloatType())
+
+    mean_df = kMeans_df.select(
+            'filename',
+            array_mean('segments_start').alias('segments_start_mean'),
+            array_mean('segments_loudness_max').alias('segments_loudness_max_mean'),
+            array_mean('segments_loudness_max_time').alias('segments_loudness_max_time_mean'),
+            array_mean('segments_loudness_start').alias('segments_loudness_start_mean'),
+            array_mean('sections_start').alias('sections_start_mean'),
+            array_mean('beats_start').alias('beats_start_mean'),
+            array_mean('bars_start').alias('bars_start_mean'),
+            array_mean('tatums_start').alias('tatums_start_mean'),
+
+            array_std('segments_start').alias('segments_start_std'),
+            array_std('segments_loudness_max').alias('segments_loudness_max_std'),
+            array_std('segments_loudness_max_time').alias('segments_loudness_max_time_std'),
+            array_std('segments_loudness_start').alias('segments_loudness_start_std'),
+            array_std('sections_start').alias('sections_start_std'),
+            array_std('beats_start').alias('beats_start_std'),
+            array_std('bars_start').alias('bars_start_std'),
+            array_std('tatums_start').alias('tatums_start_std')
+        ).cache()
+
+    mean_df.show(1)
 
     one_d_df = two_d_df.join(two_d_df_2,on='filename')
     kMeans_df = kMeans_df.join(one_d_df, on='filename')
     kMeans_df = kMeans_df.join(mean_df, on='filename')
+    # Drop the untransformed 1D and 2D array data to make the DF smaller
+    kMeans_df = kMeans_df.drop('segments_start', 'segments_loudness_max', 'segments_loudness_max_time', 'segments_loudness_start',
+        'sections_start', 'beats_start', 'bars_start', 'tatums_start', 'segments_timbre', 'segments_pitches')    
 
     # Drop rows with any empty fields
     final_df = kMeans_df.dropna("any") # Note: in 10k subset, only 2210 songs left
-    # final_df.show()
+    final_df.show(1, truncate=False)
     rows = final_df.count() # should have less than 10k songs now
     print(f"Number of rows left: {rows}")
 
@@ -304,8 +323,11 @@ def main(inputs, output):
         'end_of_fade_in_vec', 'start_of_fade_out_vec', 'key_vec', 'key_confidence_vec', 'duration_vec',
         'loudness_vec', 'tempo_vec', 'mode_vec', 'time_signature_vec', 'year_vec'
         ]
-    origin_array_ignore = ['segments_start_mean_vec', 'segments_loudness_max_mean_vec','segments_loudness_max_time_mean_vec','segments_loudness_start_mean_vec','sections_start_mean_vec','beats_start_mean_vec','bars_start_mean_vec','tatums_start_mean_vec','segments_start_std_vec','segments_loudness_max_std_vec','segments_loudness_max_time_std_vec','segments_loudness_start_std_vec','sections_start_std_vec','beats_start_std_vec','bars_start_std_vec','tatums_start_std_vec']
-    ignore = stringTypes_ignore+stringArrTypes_ignore+floatTypes_ignore+feature_cols+origin_array_ignore # columns to ignore (str)
+    origin_array_ignore = ['segments_start_mean_vec', 'segments_loudness_max_mean_vec','segments_loudness_max_time_mean_vec',
+        'segments_loudness_start_mean_vec','sections_start_mean_vec','beats_start_mean_vec','bars_start_mean_vec','tatums_start_mean_vec',
+        'segments_start_std_vec','segments_loudness_max_std_vec','segments_loudness_max_time_std_vec','segments_loudness_start_std_vec',
+        'sections_start_std_vec','beats_start_std_vec','bars_start_std_vec','tatums_start_std_vec']
+    ignore = stringTypes_ignore + stringArrTypes_ignore + floatTypes_ignore + feature_cols + origin_array_ignore # columns to ignore (str)
     scaled_features = [name for name in final_df.schema.names if name not in ignore]
     final_assembler = VectorAssembler(
         # inputCols=[x for x in df.columns if x not in ignore], 
@@ -317,10 +339,10 @@ def main(inputs, output):
     # Pipeline
     pipeline = Pipeline(stages=[
         # Transformers
-        artist_id_tf,
-        artist_name_tf,
-        title_tf,
-        similar_artists_tf,
+        # artist_id_tf,
+        # artist_name_tf,
+        # title_tf,
+        # similar_artists_tf,
         artist_familiarity_tf,
         artist_hotttnesss_tf,
         danceability_tf,
@@ -355,7 +377,7 @@ def main(inputs, output):
         # # Assemble everything
         final_assembler,
         # VectorAssembler(inputCols=['segments_timbre_vec'], outputCol='features'),
-        KMeans(featuresCol='features', k=20)    #TODO: assume 20 clusters, optimize later
+        KMeans(featuresCol='features', k=5)    #TODO: optmize k later
     ])
 
     model = pipeline.fit(train)
