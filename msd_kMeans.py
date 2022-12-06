@@ -251,7 +251,7 @@ def main(inputs, output):
         )
     two_d_df = two_d_df.groupBy('filename').avg().cache()
     
-    two_d_df.show(1)
+    # two_d_df.show(1)
 
     # Mean segments_pitches by each column
     two_d_df_2 = kMeans_df.select(
@@ -265,7 +265,7 @@ def main(inputs, output):
         )
     two_d_df_2 = two_d_df_2.groupBy('filename').avg().cache()
 
-    two_d_df_2.show(1)
+    # two_d_df_2.show(1)
 
     """
     Transform 1D Arrays to meaningful statistics
@@ -295,18 +295,18 @@ def main(inputs, output):
             array_std('tatums_start').alias('tatums_start_std')
         ).cache()
 
-    mean_df.show(1)
+    # mean_df.show(1)
 
-    kMeans_df = kMeans_df.join(two_d_df.hint('broadcast'), on='filename')
-    kMeans_df = kMeans_df.join(two_d_df_2.hint('broadcast'), on='filename')
-    kMeans_df = kMeans_df.join(mean_df.hint('broadcast'), on='filename')
+    kMeans_df = kMeans_df.join(two_d_df, on='filename')
+    kMeans_df = kMeans_df.join(two_d_df_2, on='filename')
+    kMeans_df = kMeans_df.join(mean_df, on='filename')
     # Drop the untransformed 1D and 2D array data to make the DF smaller
     # kMeans_df = kMeans_df.drop('segments_start', 'segments_loudness_max', 'segments_loudness_max_time', 'segments_loudness_start',
     #     'sections_start', 'beats_start', 'bars_start', 'tatums_start', 'segments_timbre', 'segments_pitches')    
 
     # Drop rows with any empty fields
-    final_df = kMeans_df.dropna("any") # Note: in 10k subset, only 2210 songs left
-    final_df.show(1)
+    final_df = kMeans_df.dropna("any").cache() # Note: in 10k subset, only 2210 songs left
+    # final_df.show(1)
     rows = final_df.count() # should have less than 10k songs now
     print(f"Number of rows left: {rows}")
 
@@ -377,7 +377,7 @@ def main(inputs, output):
         tatums_start_std_tf,
         # # Assemble everything
         final_assembler,
-        # VectorAssembler(inputCols=['segments_timbre_vec'], outputCol='features'),
+        MinMaxScaler(inputCol='features', outputCol='features'),
         KMeans(featuresCol='features', k=5)    #TODO: optmize k later
     ])
 
