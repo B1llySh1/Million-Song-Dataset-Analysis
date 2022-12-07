@@ -48,39 +48,39 @@ similar_artists_tf = Pipeline(stages=[
 
 """ Transformers for float/int type columns """
 artist_familiarity_tf = Pipeline(stages=[
-    VectorAssembler(inputCols=['artist_familiarity'], outputCol='artist_familiarity_vec'),
-    MinMaxScaler(inputCol='artist_familiarity_vec', outputCol='artist_familiarity_scaled')
+    VectorAssembler(inputCols=['artist_familiarity'], outputCol='artist_familiarity_scaled'),
+    # MinMaxScaler(inputCol='artist_familiarity_vec', outputCol='artist_familiarity_scaled')
 ])
 artist_hotttnesss_tf = Pipeline(stages=[ 
-    VectorAssembler(inputCols=['artist_hotttnesss'], outputCol='artist_hotttnesss_vec'),
-    MinMaxScaler(inputCol='artist_hotttnesss_vec', outputCol='artist_hotttnesss_scaled')
+    VectorAssembler(inputCols=['artist_hotttnesss'], outputCol='artist_hotttnesss_scaled'),
+    # MinMaxScaler(inputCol='artist_hotttnesss_vec', outputCol='artist_hotttnesss_scaled')
 ])
 # artist_latitude_tf = MinMaxScaler(inputCol='artist_latitude', outputCol='artist_latitude_scaled')
 # artist_longitude_tf = MinMaxScaler(inputCol='artist_longitude', outputCol='artist_longitude_scaled')
 danceability_tf = Pipeline(stages=[ 
-    VectorAssembler(inputCols=['danceability'], outputCol='danceability_vec'),
-    MinMaxScaler(inputCol='danceability_vec', outputCol='danceability_scaled')
+    VectorAssembler(inputCols=['danceability'], outputCol='danceability_scaled'),
+    # MinMaxScaler(inputCol='danceability_vec', outputCol='danceability_scaled')
 ])
 energy_tf = Pipeline(stages=[ 
-    VectorAssembler(inputCols=['energy'], outputCol='energy_vec'),
-    MinMaxScaler(inputCol='energy_vec', outputCol='energy_scaled')
+    VectorAssembler(inputCols=['energy'], outputCol='energy_scaled'),
+    # MinMaxScaler(inputCol='energy_vec', outputCol='energy_scaled')
 ])
-end_of_fade_in_tf = Pipeline(stages=[ 
-    VectorAssembler(inputCols=['end_of_fade_in'], outputCol='end_of_fade_in_vec'),
-    MinMaxScaler(inputCol='end_of_fade_in_vec', outputCol='end_of_fade_in_scaled')
-])
-start_of_fade_out_tf = Pipeline(stages=[ 
-    VectorAssembler(inputCols=['start_of_fade_out'], outputCol='start_of_fade_out_vec'),
-    MinMaxScaler(inputCol='start_of_fade_out_vec', outputCol='start_of_fade_out_scaled')
-])
+# end_of_fade_in_tf = Pipeline(stages=[ 
+#     VectorAssembler(inputCols=['end_of_fade_in'], outputCol='end_of_fade_in_vec'),
+#     MinMaxScaler(inputCol='end_of_fade_in_vec', outputCol='end_of_fade_in_scaled')
+# ])
+# start_of_fade_out_tf = Pipeline(stages=[ 
+#     VectorAssembler(inputCols=['start_of_fade_out'], outputCol='start_of_fade_out_vec'),
+#     MinMaxScaler(inputCol='start_of_fade_out_vec', outputCol='start_of_fade_out_scaled')
+# ])
 key_tf = Pipeline(stages=[ 
     VectorAssembler(inputCols=['key'], outputCol='key_vec'),
     MinMaxScaler(inputCol='key_vec', outputCol='key_scaled')
 ])
-key_confidence_tf = Pipeline(stages=[ 
-    VectorAssembler(inputCols=['key_confidence'], outputCol='key_confidence_vec'),
-    MinMaxScaler(inputCol='key_confidence_vec', outputCol='key_confidence_scaled')
-])
+# key_confidence_tf = Pipeline(stages=[ 
+#     VectorAssembler(inputCols=['key_confidence'], outputCol='key_confidence_vec'),
+#     MinMaxScaler(inputCol='key_confidence_vec', outputCol='key_confidence_scaled')
+# ])
 duration_tf = Pipeline(stages=[ 
     VectorAssembler(inputCols=['duration'], outputCol='duration_vec'),
     MinMaxScaler(inputCol='duration_vec', outputCol='duration_scaled')
@@ -260,7 +260,7 @@ def main(inputs):
     stringArrTypes_ignore = ['similar_artists_vec']
     floatTypes_ignore = ['artist_familiarity_vec', 'artist_hotttnesss_vec', 'danceability_vec', 'energy_vec',
         'end_of_fade_in_vec', 'start_of_fade_out_vec', 'key_vec', 'key_confidence_vec', 'duration_vec',
-        'loudness_vec', 'tempo_vec', 'mode_vec', 'time_signature_vec', 'year_vec'
+        'loudness_vec', 'tempo_vec', 'mode_vec', 'time_signature_vec', 'year_vec',
         ]
     origin_array_ignore = ['segments_start_mean_vec', 'segments_loudness_max_mean_vec','segments_loudness_max_time_mean_vec',
         'segments_loudness_start_mean_vec','sections_start_mean_vec','beats_start_mean_vec','bars_start_mean_vec','tatums_start_mean_vec',
@@ -310,10 +310,10 @@ def main(inputs):
         artist_hotttnesss_tf,
         danceability_tf,
         energy_tf,
-        end_of_fade_in_tf,
-        start_of_fade_out_tf,
+        # end_of_fade_in_tf,
+        # start_of_fade_out_tf,
         key_tf,
-        key_confidence_tf,
+        # key_confidence_tf,
         duration_tf,
         loudness_tf,
         tempo_tf,
@@ -380,10 +380,10 @@ def main(inputs):
         artist_hotttnesss_tf,
         danceability_tf,
         energy_tf,
-        end_of_fade_in_tf,
-        start_of_fade_out_tf,
+        # end_of_fade_in_tf,
+        # start_of_fade_out_tf,
         key_tf,
-        key_confidence_tf,
+        # key_confidence_tf,
         duration_tf,
         loudness_tf,
         tempo_tf,
