@@ -267,33 +267,33 @@ def main(inputs):
         'segments_start_std_vec','segments_loudness_max_std_vec','segments_loudness_max_time_std_vec','segments_loudness_start_std_vec',
         'sections_start_std_vec','beats_start_std_vec','bars_start_std_vec','tatums_start_std_vec']
     origin_2d_array_ignore = [
-        'avg(segments_timbre[0])', 'avg(segments_timbre[0])_vec',
-        'avg(segments_timbre[1])', 'avg(segments_timbre[1])_vec',
-        'avg(segments_timbre[2])', 'avg(segments_timbre[2])_vec',
-        'avg(segments_timbre[3])', 'avg(segments_timbre[3])_vec',
-        'avg(segments_timbre[4])', 'avg(segments_timbre[4])_vec',
-        'avg(segments_timbre[5])', 'avg(segments_timbre[5])_vec',
-        'avg(segments_timbre[6])', 'avg(segments_timbre[6])_vec',
-        'avg(segments_timbre[7])', 'avg(segments_timbre[7])_vec',
-        'avg(segments_timbre[8])', 'avg(segments_timbre[8])_vec',
-        'avg(segments_timbre[9])', 'avg(segments_timbre[9])_vec'
-        'avg(segments_timbre[10])', 'avg(segments_timbre[10])_vec',
-        'avg(segments_timbre[11])', 'avg(segments_timbre[11])_vec',
-        'avg(segments_pitches[0])', 'avg(segments_pitches[0])_vec',
-        'avg(segments_pitches[1])', 'avg(segments_pitches[1])_vec',
-        'avg(segments_pitches[2])', 'avg(segments_pitches[2])_vec',
-        'avg(segments_pitches[3])', 'avg(segments_pitches[3])_vec',
-        'avg(segments_pitches[4])', 'avg(segments_pitches[4])_vec',
-        'avg(segments_pitches[5])', 'avg(segments_pitches[5])_vec',
-        'avg(segments_pitches[6])', 'avg(segments_pitches[6])_vec',
-        'avg(segments_pitches[7])', 'avg(segments_pitches[7])_vec',
-        'avg(segments_pitches[8])', 'avg(segments_pitches[8])_vec',
-        'avg(segments_pitches[9])', 'avg(segments_pitches[9])_vec',
-        'avg(segments_pitches[10])', 'avg(segments_pitches[10])_vec',
-        'avg(segments_pitches[11])', 'avg(segments_pitches[11])_vec'
+        'avg(segments_timbre[0])_vec', #'avg(segments_timbre[0])',
+        'avg(segments_timbre[1])_vec', #'avg(segments_timbre[1])',
+        'avg(segments_timbre[2])_vec', #'avg(segments_timbre[2])',
+        'avg(segments_timbre[3])_vec', #'avg(segments_timbre[3])',
+        'avg(segments_timbre[4])_vec', #'avg(segments_timbre[4])',
+        'avg(segments_timbre[5])_vec', #'avg(segments_timbre[5])',
+        'avg(segments_timbre[6])_vec', #'avg(segments_timbre[6])',
+        'avg(segments_timbre[7])_vec', #'avg(segments_timbre[7])',
+        'avg(segments_timbre[8])_vec', #'avg(segments_timbre[8])',
+        'avg(segments_timbre[9])_vec', #'avg(segments_timbre[9])'
+        'avg(segments_timbre[10])_vec', #'avg(segments_timbre[10])',
+        'avg(segments_timbre[11])_vec', #'avg(segments_timbre[11])',
+        'avg(segments_pitches[0])_vec', #'avg(segments_pitches[0])',
+        'avg(segments_pitches[1])_vec', #'avg(segments_pitches[1])',
+        'avg(segments_pitches[2])_vec', #'avg(segments_pitches[2])',
+        'avg(segments_pitches[3])_vec', #'avg(segments_pitches[3])',
+        'avg(segments_pitches[4])_vec', #'avg(segments_pitches[4])',
+        'avg(segments_pitches[5])_vec', #'avg(segments_pitches[5])',
+        'avg(segments_pitches[6])_vec', #'avg(segments_pitches[6])',
+        'avg(segments_pitches[7])_vec', #'avg(segments_pitches[7])',
+        'avg(segments_pitches[8])_vec', #'avg(segments_pitches[8])',
+        'avg(segments_pitches[9])_vec', #'avg(segments_pitches[9])',
+        'avg(segments_pitches[10])_vec',# 'avg(segments_pitches[10])',
+        'avg(segments_pitches[11])_vec',# 'avg(segments_pitches[11])'
     ]
     ignore = stringTypes_ignore + stringArrTypes_ignore + floatTypes_ignore + feature_cols + origin_array_ignore + origin_2d_array_ignore # columns to ignore (str)
-    scaled_features = [name for name in train_df.schema.names if name not in ignore]
+    scaled_features = [name + '_scaled' for name in train_df.schema.names if name not in ignore]
     final_assembler = VectorAssembler(
         # inputCols=[x for x in df.columns if x not in ignore], 
         inputCols=scaled_features, 
@@ -371,7 +371,44 @@ def main(inputs):
         inputCols = scaled_features, outputCol = 'PCA_features')
     # Pipeline
     PCA_assemble_pipeline = Pipeline(stages=[
-        #all_data_tf, # Assume data all scaled
+        # Transformers
+        # artist_id_tf,
+        # artist_name_tf,
+        # title_tf,
+        # similar_artists_tf,
+        artist_familiarity_tf,
+        artist_hotttnesss_tf,
+        danceability_tf,
+        energy_tf,
+        end_of_fade_in_tf,
+        start_of_fade_out_tf,
+        key_tf,
+        key_confidence_tf,
+        duration_tf,
+        loudness_tf,
+        tempo_tf,
+        mode_tf,
+        time_signature_tf,
+        year_tf,
+        ##
+        segments_start_mean_tf,
+        segments_loudness_max_mean_tf,
+        segments_loudness_max_time_mean_tf,
+        segments_loudness_start_mean_tf,
+        sections_start_mean_tf,
+        beats_start_mean_tf,
+        bars_start_mean_tf,
+        tatums_start_mean_tf,
+        segments_start_std_tf,
+        segments_loudness_max_std_tf,
+        segments_loudness_max_time_std_tf,
+        segments_loudness_start_std_tf,
+        sections_start_std_tf,
+        beats_start_std_tf,
+        bars_start_std_tf,
+        tatums_start_std_tf,
+        segments_timbre_tf,
+        segments_pitches_tf,
         PCA_assembler
     ])
 
