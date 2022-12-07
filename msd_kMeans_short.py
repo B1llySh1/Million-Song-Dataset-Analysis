@@ -1,21 +1,18 @@
 import sys
 assert sys.version_info >= (3, 8) # make sure we have Python 3.8+
+from pyspark import SparkConf, SparkContext
 from pyspark.sql import SparkSession, functions, types
 from pyspark.ml import Pipeline
 from pyspark.ml.linalg import Vectors
-from pyspark.ml.functions import array_to_vector, vector_to_array
 from pyspark.ml.feature import VectorAssembler, Word2Vec, MinMaxScaler, Tokenizer
 from pyspark.ml.clustering import KMeans
 from pyspark.ml.evaluation import ClusteringEvaluator
 
-from pyspark.sql.types import ArrayType, FloatType, StringType
-
-import numpy as np
-
-from msd_schema import msd_schema
 from msd_kMeans_ETL import stringArrTypes, stringTypes, floatTypes, floatArrTypes, specialArrTypes
 
-
+spark = SparkSession.builder.appName('msd-kMeans-short').getOrCreate()
+assert spark.version >= '3.2' # make sure we have Spark 3.2+
+spark.sparkContext.setLogLevel('WARN')
 
 """ Transformers for string type columns """
 artist_id_tf = Pipeline(stages=[
@@ -234,16 +231,16 @@ segments_pitches_tf = Pipeline(stages=[
 ######################################################################################
 
 
+def main(inputs):
 
-def main(input):
     # Select from the raw DF
     feature_cols = stringTypes + stringArrTypes + floatTypes + floatArrTypes + specialArrTypes
 
-    input_train = output + "/trainSet"
-    input_test = output + "/testSet"
+    input_train = inputs + "/trainSet"
+    input_test = inputs + "/testSet"
 
-    train_df = spark.read.option("header", "true").csv(input_train).cache()
-
+    train_df = spark.read.option("header", "true").csv(input_train, inferSchema=True).cache()
+    train_df.drop("filename")
     train_df.show(1)
 
     """
@@ -347,8 +344,8 @@ def main(input):
 
     train_df.unpersist()
 
-    test_df = spark.read.option("header", "true").csv(input_test)
-
+    test_df = spark.read.option("header", "true").csv(input_test, inferSchema=True)
+    test_df.drop("filename")
     # Summarize the model over the training set and print out some metrics
     
 
@@ -362,11 +359,8 @@ def main(input):
 
 if __name__ == '__main__':
     inputs = sys.argv[1]
-    output = sys.argv[2]
     
-    spark = SparkSession.builder.appName('msd-kMeans').getOrCreate()
-    assert spark.version >= '3.2' # make sure we have Spark 3.2+
-    spark.sparkContext.setLogLevel('WARN')
-    #sc = spark.sparkContext
 
-    main(input)
+    # sc = spark.sparkContext
+
+    main(inputs)

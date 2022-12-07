@@ -2,11 +2,6 @@ import sys
 assert sys.version_info >= (3, 8) # make sure we have Python 3.8+
 from pyspark.sql import SparkSession, functions, types
 from pyspark.ml import Pipeline
-from pyspark.ml.linalg import Vectors
-from pyspark.ml.functions import array_to_vector, vector_to_array
-from pyspark.ml.feature import VectorAssembler, Word2Vec, MinMaxScaler, Tokenizer
-from pyspark.ml.clustering import KMeans
-from pyspark.ml.evaluation import ClusteringEvaluator
 
 from pyspark.sql.types import ArrayType, FloatType, StringType
 
@@ -14,6 +9,10 @@ import numpy as np
 
 from msd_schema import msd_schema
 
+
+spark = SparkSession.builder.appName('msd-kMeans-ETL').getOrCreate()
+assert spark.version >= '3.2' # make sure we have Spark 3.2+
+spark.sparkContext.setLogLevel('WARN')
 
 # columns to be selected for transformation
 stringTypes = [ 
@@ -24,7 +23,6 @@ stringTypes = [
     # 'title'
 ]
 
-stringTypes_cols = ['artist_id_scaled', 'artist_name_scaled', 'title_scaled']
 
 ######################################################################################
 
@@ -33,7 +31,6 @@ stringArrTypes = [
     # 'similar_artists',
 ]
 
-stringArrTypes_cols = ['similar_artists_scaled']
 
 ######################################################################################
 
@@ -54,10 +51,6 @@ floatTypes = [
     'year', #TODO: shift to delta since min year
 ]
 
-
-floatTypes_cols = ['artist_familiarity_scaled', 'artist_hotttnesss_scaled', 'danceability_scaled', 'energy_scaled',
-    'end_of_fade_in_scaled', 'start_of_fade_out_scaled', 'key_scaled', 'key_confidence_scaled', 'duration_scaled',
-    'loudness_scaled', 'tempo_scaled', 'mode_scaled', 'time_signature_scaled', 'year_scaled']
 
 ######################################################################################
 floatArrTypes = [
@@ -190,9 +183,7 @@ if __name__ == '__main__':
     inputs = sys.argv[1]
     output = sys.argv[2]
     
-    spark = SparkSession.builder.appName('msd-kMeans').getOrCreate()
-    assert spark.version >= '3.2' # make sure we have Spark 3.2+
-    spark.sparkContext.setLogLevel('WARN')
+
     #sc = spark.sparkContext
 
     main(inputs, output)
