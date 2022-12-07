@@ -4,9 +4,14 @@ from pyspark import SparkConf, SparkContext
 from pyspark.sql import SparkSession, functions, types
 from pyspark.ml import Pipeline
 from pyspark.ml.linalg import Vectors
-from pyspark.ml.feature import VectorAssembler, Word2Vec, MinMaxScaler, Tokenizer
+from pyspark.ml.feature import VectorAssembler, Word2Vec, MinMaxScaler, Tokenizer, PCA
 from pyspark.ml.clustering import KMeans
 from pyspark.ml.evaluation import ClusteringEvaluator
+
+import numpy as np
+import pandas as pd
+import seaborn as sns
+import matplotlib.pyplot as plt
 
 from msd_kMeans_ETL import stringArrTypes, stringTypes, floatTypes, floatArrTypes, specialArrTypes
 
@@ -356,6 +361,44 @@ def main(inputs):
 
     silhouette = evaluator.evaluate(predictions)
     print("Silhouette with squared euclidean distance = " + str(silhouette))
+
+
+    """
+    Plot the 2-D cluster using PCA and Kmean
+    """
+    # Assemble data
+    PCA_assembler = VectorAssembler(
+        inputCols = scaled_features, outputCol = 'PCA_features')
+    # Pipeline
+    PCA_assemble_pipeline = Pipeline(stages=[
+        #all_data_tf, # Assume data all scaled
+        PCA_assembler
+    ])
+
+    PCA_assembled = PCA_assemble_pipeline.fit(train_df)# Choose the dataframe to plot
+
+    Assemble_df = PCA_assembled.transform(train_df).select('PCA_features') # Choose the dataframe to plot
+
+    Assemble_df.first()
+
+    # Clustering
+    KMeans_=KMeans(featuresCol='PCA_features', k=10)  # Choose the number of cluster here
+    KMeans_Model=KMeans_.fit(Assemble_df)
+    KMeans_Assignments=KMeans_Model.transform(Assemble_df)
+
+    # Converting to 2-D
+    pca = PCA(k=2, inputCol='PCA_features', outputCol="pca_features")
+    model = pca.fit(Assemble_df)
+    pca_transformed = model.transform(Assemble_df)
+
+    x_pca = np.array(pca_transformed.rdd.map(lambda row: row.pca_features).collect())
+
+    cluster_assignment = np.array(KMeans_Assignments.rdd.map(lambda row: row.prediction).collect()).reshape(-1,1)
+
+    pca_data = np.hstack((x_pca,cluster_assignment))
+    pca_df = pd.DataFrame(data=pca_data, columns=("1st_principal", "2nd_principal","cluster_assignment"))
+    sns.FacetGrid(pca_df,hue="cluster_assignment", height=6).map(plt.scatter, '1st_principal', '2nd_principal' ).add_legend()
+    plt.savefig('Cluster.png')
 
 if __name__ == '__main__':
     inputs = sys.argv[1]
