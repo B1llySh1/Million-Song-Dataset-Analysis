@@ -4,6 +4,7 @@
 # for C in $(echo -n ABCDEFGHIJKLMNOPQRSTUVWXYZ | sed -e 's/\(.\)/\1\n/g'); do mkdir -p MillionSong-flat/${C}; done
 # mmv -l "MSD_Data/MSD/snap/data/*/*/*/*.h5" "MillionSong-flat/#1/#4"
 # hdfs dfs -D dfs.replication=1 -copyFromLocal MillionSong-flat /courses/datasets/MillionSong-flat
+import sys
 from pyspark.sql import SparkSession, functions, types, Row
 
 spark = SparkSession.builder.appName('million song extractor').getOrCreate()
@@ -14,13 +15,12 @@ sc.addPyFile('hdf5_getters_h5py.py')
 from hdf5_getters_h5py import *
 from msd_schema import msd_schema
 # Full dataset
-# inputs = '/courses/datasets/MillionSong-flat/*/*'
-# h5s = sc.binaryFiles(inputs, minPartitions=100000)
+inputs = '/courses/datasets/MillionSong-flat/*'
+h5s = sc.binaryFiles(inputs, minPartitions=1000)
 
 # 10k subset
-inputs = '/Users/peterfan/Desktop/MillionSongSubset-flat/*'
-# inputs = '/courses/datasets/MillionSongSubset-flat/*/*'
-h5s = sc.binaryFiles(inputs, minPartitions=1000)
+# inputs = '/courses/datasets/MillionSongSubset-flat/*'
+# h5s = sc.binaryFiles(inputs, minPartitions=1000)
 
 
 def extract_hdf5(f):
@@ -96,7 +96,9 @@ def extract_hdf5(f):
         year = get_year(h5)
     )
 
+if __name__ == '__main__':
+    output = sys.argv[1]
 
-data_rdd = h5s.map(extract_hdf5)
-data = spark.createDataFrame(data_rdd, schema=msd_schema)
-data.write.json('/Users/peterfan/Desktop/msd-10k', mode='overwrite', compression='gzip')
+    data_rdd = h5s.map(extract_hdf5)
+    data = spark.createDataFrame(data_rdd, schema=msd_schema)
+    data.write.json(output, mode='overwrite', compression='gzip')
