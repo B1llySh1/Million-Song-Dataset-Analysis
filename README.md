@@ -3,8 +3,9 @@
 A cluster study of Million Song Dataset (http://millionsongdataset.com)
 
 # TODOs
-[ ] Update testing instructions when analysis part is finished
-[ ] 
+[x] Code cleanup for extractor scripts
+[] Update testing instructions when analysis part is finished.
+[] 
 
 ## Dependencies
 
@@ -21,9 +22,13 @@ A cluster study of Million Song Dataset (http://millionsongdataset.com)
 ## SFU HDFS Dataset Fillpaths
 
 The flattened HDF5 dataset is on the SFU cluster: `/courses/datasets/MillionSong-flat`
+
 The flattened HDF5 10k subset is in on the SFU cluster: `/courses/datasets/MillionSongSubset-flat`
+
 The extracted JSON.gzip full dataset is on the SFU cluster: `/user/cfa60/msd-full`
+
 The extracted JSON.gzip 10k subset is on the SFU cluster: `/user/cfa60/msd-10k`
+
 The ETL'd CSV intermediate full set is on the SFU cluster: `/user/cfa60/msd-intermediate-full`
 
 ## Code Test Run Instructions
@@ -39,7 +44,8 @@ These files converts HDF5 into JSON.gzip using PySpark. H5Py package is required
     - Path to the HDF5 subset on SFU cluster is already in the file.
 * `million_song_hdf5_extractor.py` converts the full HDF5 dataset from MSD
     - Path to the HDF5 full dataset on SFU cluster is already in the file.
-    - Run on SFU Cluster `spark-submit 10k_song_hdf5_extractor.py your_output_dir`. Note: This takes hours to finish.
+    - Run on SFU Cluster `spark-submit 10k_song_hdf5_extractor.py your_output_dir`. 
+    - **Note: This takes hours to finish.**
 
 
 ### 2. Testing ETL Python Script
