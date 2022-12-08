@@ -3,9 +3,9 @@
 A cluster study of Million Song Dataset (http://millionsongdataset.com)
 
 # TODOs
-[x] Code cleanup for extractor scripts
-[] Update testing instructions when analysis part is finished.
-[] 
+- [x] Code cleanup for extractor scripts
+- [] Update testing instructions when analysis part is finished.
+- [] 
 
 ## Dependencies
 
@@ -37,15 +37,15 @@ Testing must be done on the SFU cluster.
 
 ### 1. Testing HDF5 Extractors:
 These files converts HDF5 into JSON.gzip using PySpark. H5Py package is required.
-* `msd_schema.py` is the Spark dataframe schema used
+* `msd_schema.py` is the Spark dataframe schema used.
 * `hdf5_getters_h5py.py` contains the getter functions to parse the HDF5 files.
-* `10k_song_hdf5_extractor.py` converts the 10k HDF5 subset from MSD
+* `10k_song_hdf5_extractor.py` converts the 10k HDF5 subset from MSD.
     - Run on SFU Cluster `spark-submit 10k_song_hdf5_extractor.py your_output_dir`.
     - Path to the HDF5 subset on SFU cluster is already in the file.
-* `million_song_hdf5_extractor.py` converts the full HDF5 dataset from MSD
-    - Path to the HDF5 full dataset on SFU cluster is already in the file.
+* `million_song_hdf5_extractor.py` converts the full HDF5 dataset from MSD.
     - Run on SFU Cluster `spark-submit 10k_song_hdf5_extractor.py your_output_dir`. 
-    - **Note: This takes hours to finish.**
+        - **Note: This takes hours to finish.**
+    - Path to the HDF5 full dataset on SFU cluster is already in the file.
 
 
 ### 2. Testing ETL Python Script
@@ -55,7 +55,6 @@ This file takes the JSON.gzip generated on the cluster, and perform ETL to gener
     - Output will contain 2 subfolders. One for training. One for prediction.
 
 ### 3. Testing K-Means Python Script
-
 
 ### 4. Testing PCA Python Script
 
