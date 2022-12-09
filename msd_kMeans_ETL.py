@@ -27,7 +27,7 @@ stringTypes = [
 ######################################################################################
 
 stringArrTypes = [         
-    # 'artist_terms', # TODO: Decide if want to continue with using terms/tags
+    'artist_terms', # Keep only the first artist term
     # 'similar_artists',
 ]
 
@@ -40,7 +40,7 @@ floatTypes = [
     'artist_hotttnesss',
     # 'artist_latitude', 'artist_longitude',    # dropped because too many N/A
     # 'song_hotttnesss', # dropped because too many N/A
-    'danceability', 'energy',
+    # 'danceability', 'energy', # dropped because too much 0
     'end_of_fade_in', 'start_of_fade_out',
     'key', 'key_confidence',
     'duration', 
@@ -54,7 +54,7 @@ floatTypes = [
 
 ######################################################################################
 floatArrTypes = [
-    # 'artist_terms_freq', 'artist_terms_weight', #TODO: VectorAssemble with 'artist_terms'
+    # 'artist_terms_freq', 'artist_terms_weight', 
     'segments_start', #'segments_confidence',
     'segments_loudness_max', 'segments_loudness_max_time', 'segments_loudness_start',
     'sections_start', #'sections_confidence',
@@ -86,7 +86,7 @@ def main(inputs, output):
     df = spark.read.json(inputs, schema=msd_schema)
     
     # TODO: caching here seems to break test on local machine, but caching fixes 0 row count error on the cluster
-    kMeans_df = df.select(feature_cols).cache()     # TODO: remove the limit, maybe cache? 
+    kMeans_df = df.select(feature_cols)#.cache()     # TODO: remove the limit, maybe cache? 
 
     """
     Transform 2D arrays to meaningful statistics
@@ -163,11 +163,14 @@ def main(inputs, output):
     kMeans_df = kMeans_df.join(mean_df, on='filename')
     mean_df.unpersist()
 
+    # To keep only the first artist term
+    kMeans_df = kMeans_df.withColumn('artist_terms', functions.col("artist_terms")[1])
     # Drop rows with any empty fields
     final_df = kMeans_df.dropna("any").cache() # Note: in 10k subset, only 2210 songs left
     # final_df.show(1)
     rows = final_df.count() # should have less than 10k songs now
     print(f"Number of rows left: {rows}")
+
 
 
     train, test = final_df.randomSplit([0.8, 0.2], seed=123)
