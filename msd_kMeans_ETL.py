@@ -36,7 +36,7 @@ stringArrTypes = [
 
 # also include Int types
 floatTypes = [
-    'artist_familiarity', # use to filter out low familiarity artists?
+    'artist_familiarity',
     'artist_hotttnesss',
     # 'artist_latitude', 'artist_longitude',    # dropped because too many N/A
     # 'song_hotttnesss', # dropped because too many N/A
@@ -44,11 +44,11 @@ floatTypes = [
     'end_of_fade_in', 'start_of_fade_out',
     'key', 'key_confidence',
     'duration', 
-    'loudness', #TODO: shift +60dB (since -60dB is the zero in raw data)
+    'loudness',
     'tempo', 
     'mode', 'mode_confidence',
     'time_signature', 'time_signature_confidence',  # beats per min
-    'year', #TODO: shift to delta since min year
+    'year', 
 ]
 
 
@@ -86,7 +86,7 @@ def main(inputs, output):
     df = spark.read.json(inputs, schema=msd_schema)
     
     # Caching here seems to break test on local machine, but caching fixes 0 row count error on the cluster
-    kMeans_df = df.select(feature_cols)#.cache()     # Remove the limit, maybe cache? 
+    kMeans_df = df.select(feature_cols)#.cache()
     """
     Outliers filtering:
     """
