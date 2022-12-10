@@ -29,6 +29,14 @@ The ETL'd CSV intermediate full set is on the SFU cluster: `/user/cfa60/msd-inte
 ## Code Test Run Instructions
 
 Testing must be done on the SFU cluster.
+TL;DR (do in order)
+```
+spark-submit 10k_song_hdf5_extractor.py your-output-json
+spark-submit msd_kMeans_ETL.py your-output-json your_csv_output
+spark-submit msd_find_k.py your_csv_output
+spark-submit msd_kMeans_final.py your_csv_output
+```
+
 
 ### 1. Testing HDF5 Extractors:
 These files converts HDF5 into JSON.gzip using PySpark. H5Py package is required.
