@@ -85,8 +85,8 @@ def main(inputs, output):
 
     df = spark.read.json(inputs, schema=msd_schema)
     
-    # TODO: caching here seems to break test on local machine, but caching fixes 0 row count error on the cluster
-    kMeans_df = df.select(feature_cols)#.cache()     # TODO: remove the limit, maybe cache? 
+    # Caching here seems to break test on local machine, but caching fixes 0 row count error on the cluster
+    kMeans_df = df.select(feature_cols)#.cache()     # Remove the limit, maybe cache? 
     """
     Outliers filtering:
     """
