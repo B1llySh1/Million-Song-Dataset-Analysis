@@ -346,7 +346,7 @@ def main(inputs):
     pipeline = Pipeline(stages=[
         all_tf,
         final_assembler,
-        KMeans(featuresCol='features', k=9)    # Optmized k
+        KMeans(featuresCol='features', k=4)    # Optmized k
     ])
 
     model = pipeline.fit(train_df)
@@ -365,14 +365,14 @@ def main(inputs):
     evaluator = ClusteringEvaluator()
 
     silhouette = evaluator.evaluate(predictions)
-    print("Silhouette with squared euclidean distance with (kMean k=9) = " + str(silhouette))
+    print("Silhouette with squared euclidean distance with (kMean k=4) = " + str(silhouette))
 
 
     """
     Plot the 2-D cluster using PCA and Kmean
     """
 
-    print("Generating clustering 2-D plot with kmean k=9 and PCA2.")
+    print("Generating clustering 2-D plot with kmean k=4 and PCA2.")
     # Pipeline
     PCA_assemble_pipeline = Pipeline(stages=[
         all_tf,
@@ -386,7 +386,7 @@ def main(inputs):
     # Assemble_df.first()
 
     # Clustering
-    KMeans_=KMeans(featuresCol='features', k=9)  # Choose the number of cluster here
+    KMeans_=KMeans(featuresCol='features', k=4)  # Choose the number of cluster here
     KMeans_Model=KMeans_.fit(Assemble_df)
     KMeans_Assignments=KMeans_Model.transform(Assemble_df)
 
@@ -407,7 +407,7 @@ def main(inputs):
     """
     Plot the 3-D cluster using PCA and Kmean
     """
-    print("Generating clustering 3-D plot with kmean k=9 and and PCA3.")
+    print("Generating clustering 3-D plot with kmean k=4 and and PCA3.")
     # Converting to 3-D
     pca = PCA(k=3, inputCol='features', outputCol="pca_features")
     model = pca.fit(Assemble_df)
@@ -455,8 +455,8 @@ def main(inputs):
     print("Raw cluster crosstab: ", counts)
     counts.to_csv('term_cluster.csv')
 
-    close_music_terms = np.empty(shape=(6, 9), dtype="U20")
-    for i in range(0, 9): # Depending on the number of cluster
+    close_music_terms = np.empty(shape=(6, 4), dtype="U20")
+    for i in range(0, 4): # Depending on the number of cluster
         sorted_with_cluster = counts.sort_values(i,ascending=False)
         for j in range(0, 6): # Get the first 6 closed music terms in one cluster
             # print(sorted_with_cluster.index[j])
