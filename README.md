@@ -2,11 +2,6 @@
 
 A cluster study of Million Song Dataset (http://millionsongdataset.com)
 
-# TODOs
-- [x] Code cleanup for extractor scripts
-- [] Update testing instructions when analysis part is finished.
-- [] 
-
 ## Dependencies
 
 * Python 3.8+
@@ -54,9 +49,13 @@ This file takes the JSON.gzip generated on the cluster, and perform ETL to gener
     - Run `spark-submit msd_kMeans_ETL.py your_json_gzip_dir your_csv_output_dir`
     - Output will contain 2 subfolders. One for training. One for prediction.
 
-### 3. Testing K-Means Python Script
+### 3. Testing find k K-Means Python Script
+This files runs on the converted csv files and runs different k's on the data to see which k has the highest score on the data.
+* `msd_find_k.py`
+    - Run `spark-submit msd_find_k.py your_csv_dir`
+    - Outputs a pandas dataframe of the k's and its respective score and save it as a csv. A plot shows the score with the relation to the k.
 
-### 4. Testing PCA Python Script
-
-
-### 5. Testing Analysis Generation Script
+### 4. Testing Clustering Analysis Generation Script
+* `msd_kMeans_final.py`
+    - Run `spark-submit msd_kMeans_ETL.py your_csv_dir`
+    - Outputs the score with the kmean. And plot the cluster in both 2D and 3D. Also saves two csvs one contains the crosstab of the cluster assignments and its term, and another contains the result of closest terms inside each cluster.
