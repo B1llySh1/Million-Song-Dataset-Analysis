@@ -28,7 +28,8 @@ The ETL'd CSV intermediate full set is on the SFU cluster: `/user/cfa60/msd-inte
 
 ## Code Test Run Instructions
 
-Testing must be done on the SFU cluster.
+### !!! Testing must be done on the SFU cluster. !!!
+
 TL;DR (do in order)
 ```
 spark-submit 10k_song_hdf5_extractor.py your-output-json
