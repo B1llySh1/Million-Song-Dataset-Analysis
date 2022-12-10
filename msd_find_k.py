@@ -13,7 +13,7 @@ import pandas as pd
 #import seaborn as sns
 import matplotlib.pyplot as plt
 
-from msd_kMeans_short import all_tf, ignore_columns
+from msd_kMeans_final import all_tf, ignore_columns
 
 spark = SparkSession.builder.appName('msd-kMeans-short').getOrCreate()
 assert spark.version >= '3.2' # make sure we have Spark 3.2+
@@ -73,6 +73,11 @@ def main(inputs):
     k_dataframe = pd.DataFrame(data=k_score, columns=('K', 'Silhouette_Score'))
     print(k_dataframe)
     k_dataframe.to_csv('k_index.csv')
+    fig, ax = plt.subplots(1,1, figsize =(10,8))
+    ax.plot(index_to_try,silhouette_scores)
+    ax.set_xlabel('Number of Clusters')
+    ax.set_ylabel('Silhouette Score')
+    fig.savefig("Silhouette_Score.png")
 
 
 if __name__ == '__main__':
