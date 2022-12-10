@@ -57,5 +57,5 @@ This files runs on the converted csv files and runs different k's on the data to
 
 ### 4. Testing Clustering Analysis Generation Script
 * `msd_kMeans_final.py`
-    - Run `spark-submit msd_kMeans_ETL.py your_csv_dir`
+    - Run `spark-submit msd_kMeans_final.py your_csv_dir`
     - Outputs the score with the kmean. And plot the cluster in both 2D and 3D. Also saves two csvs one contains the crosstab of the cluster assignments and its term, and another contains the result of closest terms inside each cluster.
